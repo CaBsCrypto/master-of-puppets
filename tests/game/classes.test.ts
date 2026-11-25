@@ -1,0 +1,310 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { DEFAULT_CONFIG, LIVE_ENCOUNTER_CONFIG } from '../../src/game/config'
+import { COMBAT_CLASSES } from '../../src/game/classes'
+import { Encounter } from '../../src/game/encounter'
+import type { CombatClass } from '../../src/game/types'
+
+const close = { x: 16, y: 3.1, z: 13.5 }
+const mid = { x: 16, y: 3.1, z: 12.5 }
+const far = { x: 16, y: 3.1, z: 10 }
+const distant = { x: 16, y: 3.1, z: 8 }
+const drawnReach = { x: 16, y: 3.1, z: 5.5 }
+const beyondDrawnReach = { x: 16, y: 3.1, z: 4.9 }
+const fallen = { x: 16, y: 0, z: 2.8 }
+
+function stagedRun(role?: CombatClass, options: ConstructorParameters<typeof Encounter>[0] = {}): Encounter {
+  const game = new Encounter({ classSelectionEnabled: true, firstOpeningSeconds: 12, ...options })
+  game.start()
+  if (role) assert.equal(game.chooseClass(role), true)
+  return game
+}
+
+function combatArcher(options: ConstructorParameters<typeof Encounter>[0] = {}): Encounter {
+  const game = stagedRun('archer', options)
+  game.update(12, close)
+  assert.equal(game.cutKnot('aimed'), true)
+  game.drainEvents()
+  return game
+}
+
+test('the cast locks one choice per run and defaults to melee at the first opening', () => {
+  const game = stagedRun()
+  game.update(11.95, close)
+  assert.equal(game.snapshot.classSelectionOpen, true)
+  assert.equal(game.snapshot.selectedClass, null)
+  game.update(0.05, close)
+  assert.equal(game.snapshot.selectedClass, 'melee')
+  assert.equal(game.snapshot.classSelectionOpen, false)
+  assert.equal(game.chooseClass('mage'), false)
+  assert.ok(game.snapshot.knotOpen)
+  assert.deepEqual(game.drainEvents().find(event => event.type === 'class_selected')?.data, { id: 'melee', automatic: true })
+  game.update(3.05, close)
+  assert.equal(game.snapshot.phase, 'f1')
+  assert.equal(game.cutKnot('proximity'), true, 'the free opening carries through into the fight')
+  assert.equal(game.cutKnot('aimed'), false, 'a second input cannot spend the same opening')
+
+  game.start()
+  assert.equal(game.snapshot.classSelectionOpen, true)
+  assert.equal(game.chooseClass('mage'), true)
+  assert.equal(game.chooseClass('archer'), false)
+  assert.equal(game.snapshot.health, 4)
+  assert.deepEqual(game.drainEvents().find(event => event.type === 'class_selected')?.data, { id: 'mage', automatic: false })
+})
+
+test('class attacks enforce their own range and input while aiming still needs an exposed knot', () => {
+  const melee = stagedRun('melee')
+  melee.update(12, { ...far, z: 6.8 })
+  assert.equal(melee.cutKnot('aimed'), false)
+  melee.update(0.05, close)
+  assert.equal(melee.cutKnot('proximity'), true)
+
+  const mage = stagedRun('mage')
+  mage.update(11.95, far)
+  assert.equal(mage.cutKnot('aimed'), false)
+  mage.update(0.05, far)
+  assert.equal(mage.cutKnot('proximity'), false)
+  assert.equal(mage.cutKnot('aimed'), true)
+
+  const closeMage = stagedRun('mage')
+  closeMage.update(12, mid)
+  assert.equal(closeMage.cutKnot('proximity'), true)
+
+  const archer = stagedRun('archer')
+  archer.update(12, close)
+  assert.equal(archer.cutKnot('proximity'), false)
+  assert.equal(archer.useClassAbility(), false)
+  archer.update(0.05, distant)
+  assert.equal(archer.cutKnot('aimed'), true)
+})
+
+test('guard absorbs one attack, then damage and cooldown continue normally', () => {
+  const game = new Encounter({ classSelectionEnabled: true, respawnProtectionSeconds: 0 })
+  game.start('f1')
+  game.update(1.05, close)
+  assert.equal(game.useClassAbility(), true)
+  assert.equal(game.snapshot.abilityActiveRemaining, 1)
+  assert.equal(game.useClassAbility(), false)
+  game.update(0.35, close)
+  assert.equal(game.snapshot.health, 5)
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.equal(game.drainEvents().filter(event => event.type === 'guard_blocked').length, 1)
+  game.update(2.2, close)
+  assert.equal(game.snapshot.health, 4)
+  assert.ok(game.snapshot.abilityCooldownRemaining > 0)
+})
+
+test('guard cannot prevent falls and replay clears its cooldown', () => {
+  const game = new Encounter({ classSelectionEnabled: true, respawnProtectionSeconds: 0 })
+  game.start('f1')
+  assert.equal(game.useClassAbility(), true)
+  game.update(0.05, fallen)
+  assert.equal(game.snapshot.respawning, true)
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.equal(game.drainEvents().some(event => event.type === 'guard_blocked'), false)
+  game.start()
+  assert.equal(game.snapshot.abilityCooldownRemaining, 0)
+  assert.equal(game.snapshot.selectedClass, null)
+})
+
+test('arcane bind requires a reachable combat opening and adds two seconds only once', () => {
+  const game = stagedRun('mage', { windows: [20, 3, 3, 6] })
+  game.update(12, close)
+  assert.equal(game.useClassAbility(), false, 'the tutorial opening does not consume the ability')
+  assert.equal(game.cutKnot(), true)
+  game.update(7.3, DEFAULT_CONFIG.spawn)
+  assert.ok(game.snapshot.knotOpen)
+  assert.equal(game.useClassAbility(), false, 'out of range cannot extend the opening')
+  game.update(0.05, far)
+  const remaining = game.snapshot.knotWindowRemaining
+  assert.equal(game.useClassAbility(), true)
+  assert.equal(game.snapshot.knotWindowRemaining, remaining + 2)
+  game.update(12.05, far)
+  assert.equal(game.snapshot.abilityCooldownRemaining, 0)
+  assert.equal(game.useClassAbility(), false, 'cooldown expiration does not allow another extension of the same opening')
+  assert.equal(game.cutKnot(), true)
+  assert.equal(game.cutKnot(), false)
+})
+
+test('drawn shot prepares while closed and only a valid aimed hit consumes it', () => {
+  const game = combatArcher()
+  game.update(6.5, beyondDrawnReach)
+  assert.equal(game.snapshot.knotOpen, false)
+  assert.equal(game.snapshot.knotReach, 10)
+  assert.equal(game.useClassAbility(), true)
+  assert.equal(game.snapshot.ability, 'drawn_shot')
+  assert.equal(game.snapshot.abilityActiveRemaining, 2)
+  assert.equal(game.snapshot.abilityCooldownRemaining, 12)
+  assert.equal(game.snapshot.knotReach, 11)
+  assert.equal(game.cutKnot('aimed'), false)
+  game.update(0.8, beyondDrawnReach)
+  assert.equal(game.snapshot.knotOpen, true)
+  assert.equal(game.cutKnot('aimed'), false, 'the armed arrow still has a maximum range')
+  game.update(0.05, drawnReach)
+  assert.equal(game.cutKnot('proximity'), false)
+  assert.equal(game.snapshot.knotReach, 11)
+  assert.equal(game.cutKnot('aimed'), true)
+  assert.equal(game.cutKnot('aimed'), false)
+  assert.equal(game.snapshot.knotReach, 10)
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.ok(game.snapshot.abilityCooldownRemaining > 11)
+  const events = game.drainEvents()
+  const cast = events.find(event => event.type === 'class_ability')!
+  assert.equal(cast.data?.id, 'archer')
+  assert.equal(cast.data?.ability, 'drawn_shot')
+  assert.equal(cast.data?.effectSeconds, 2)
+  assert.equal(cast.data?.activeUntil, cast.elapsed + 2)
+  assert.equal(cast.data?.cooldownReadyAt, cast.elapsed + 12)
+  assert.equal(events.find(event => event.type === 'class_ability_end')?.data?.reason, 'consumed')
+  assert.equal(events.filter(event => event.type === 'hit').length, 1)
+  assert.equal(events.find(event => event.type === 'hit')?.data?.ability, 'drawn_shot')
+})
+
+test('drawn range expires at two seconds while the twelve-second activation cooldown continues', () => {
+  const game = combatArcher()
+  game.update(7.25, drawnReach)
+  assert.equal(game.snapshot.knotOpen, true)
+  assert.equal(game.cutKnot('aimed'), false)
+  assert.equal(game.useClassAbility(), true)
+  game.update(1.95, drawnReach)
+  assert.equal(game.snapshot.knotReach, 11)
+  game.update(0.05, drawnReach)
+  assert.equal(game.snapshot.knotOpen, true)
+  assert.equal(game.snapshot.knotReach, 10)
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.equal(game.cutKnot('aimed'), false)
+  assert.equal(game.useClassAbility(), false)
+  game.update(9.95, drawnReach)
+  assert.equal(game.useClassAbility(), false)
+  game.update(0.05, drawnReach)
+  assert.equal(game.snapshot.abilityCooldownRemaining, 0)
+  assert.equal(game.useClassAbility(), true)
+})
+
+test('a lower-range armed hit spends the draw and its cooldown follows the archer through phases and recovery', () => {
+  const game = combatArcher({ hitsPerPhase: [2, 3, 3, 1], respawnProtectionSeconds: 0 })
+  game.update(7.25, close)
+  assert.equal(game.useClassAbility(), true)
+  assert.equal(game.cutKnot('aimed'), true)
+  assert.equal(game.snapshot.phase, 'f2')
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.equal(game.snapshot.abilityCooldownRemaining, 12)
+  game.update(12.05, DEFAULT_CONFIG.spawn)
+  assert.equal(game.useClassAbility(), true)
+  game.update(0.05, fallen)
+  assert.equal(game.snapshot.respawning, true)
+  assert.equal(game.snapshot.knotReach, 10)
+  assert.equal(game.snapshot.abilityActiveRemaining, 0)
+  assert.equal(game.useClassAbility(), false)
+  assert.ok(game.snapshot.abilityCooldownRemaining > 11)
+  game.start()
+  assert.equal(game.snapshot.abilityCooldownRemaining, 0)
+  assert.equal(game.snapshot.selectedClass, null)
+})
+
+test('class health survives respawn and no class can delay the 295-second finish', () => {
+  for (const role of ['melee', 'mage', 'archer'] as const) {
+    const game = stagedRun(role)
+    game.update(0.05, fallen)
+    assert.ok(game.snapshot.respawning)
+    game.update(2.05, fallen)
+    assert.equal(game.snapshot.health, role === 'melee' ? 5 : 4)
+    assert.equal(game.snapshot.selectedClass, role)
+    game.update(300, DEFAULT_CONFIG.spawn)
+    assert.equal(game.snapshot.complete, true)
+    assert.ok(game.snapshot.elapsed <= 295)
+  }
+})
+
+test('live selection opens a long harmless practice with both inputs available', () => {
+  const game = new Encounter(LIVE_ENCOUNTER_CONFIG)
+  game.start()
+  game.update(4, close)
+  assert.equal(game.snapshot.classSelectionOpen, true)
+  assert.ok(Math.abs(game.snapshot.classSelectionRemaining - 14) < 1e-6)
+  assert.equal(game.cutKnot(), false)
+  assert.equal(game.useClassAbility(), false)
+  assert.equal(game.useSecondaryAbility(), false)
+  assert.equal(game.snapshot.hazards.length, 0)
+  assert.equal(game.chooseClass('mage'), true)
+  assert.equal(game.snapshot.classSelectionOpen, false)
+  assert.equal(game.snapshot.practiceOpening, true)
+  assert.ok(Math.abs(game.snapshot.knotWindowRemaining - 26) < 1e-6)
+  game.update(25, close)
+  assert.equal(game.snapshot.practiceOpening, true)
+  assert.equal(game.snapshot.hazards.length, 0)
+  assert.equal(game.useClassAbility(), true, 'Arcane Bind can be rehearsed during the first opening')
+  game.update(2, close)
+  assert.equal(game.snapshot.practiceOpening, true)
+  assert.ok(Math.abs(game.snapshot.knotWindowRemaining - 1) < 1e-6)
+  assert.equal(game.useSecondaryAbility(), true)
+  assert.equal(game.snapshot.phase, 'f1')
+  assert.equal(game.snapshot.practiceOpening, false)
+  assert.equal(game.snapshot.successfulCuts, 1)
+})
+
+test('live default selects Cartista at 18 seconds and practice remains available to 30 seconds', () => {
+  const game = new Encounter(LIVE_ENCOUNTER_CONFIG)
+  game.start()
+  game.update(17.95, close)
+  assert.equal(game.snapshot.knotOpen, false)
+  assert.equal(game.snapshot.classSelectionOpen, true)
+  game.update(0.05, close)
+  assert.equal(game.snapshot.selectedClass, 'melee')
+  assert.equal(game.snapshot.practiceOpening, true)
+  game.update(11.95, close)
+  assert.equal(game.snapshot.practiceOpening, true)
+  game.update(0.05, close)
+  assert.equal(game.snapshot.phase, 'f1')
+  assert.equal(game.snapshot.practiceOpening, false)
+  assert.equal(game.snapshot.knotOpen, true)
+  assert.equal(game.snapshot.hazards.length, 0)
+})
+
+test('each E power shares basic reach, consumes only an accepted strike and keeps a separate cooldown from F', () => {
+  for (const [role, z] of [['melee', 7.25], ['mage', 8.4], ['archer', 6.4]] as const) {
+    const game = new Encounter(LIVE_ENCOUNTER_CONFIG)
+    game.start()
+    const stats = COMBAT_CLASSES[role]
+    assert.equal(game.chooseClass(role), true)
+    assert.equal(game.useSecondaryAbility(), false)
+    assert.equal(game.snapshot.secondaryAbilityCooldownRemaining, 0)
+    game.update(0.05, { ...close, z })
+    assert.equal(game.snapshot.secondaryAbilityReach, stats.knotReach)
+    assert.equal(game.snapshot.secondaryAbilityReach, game.snapshot.knotReach)
+    assert.equal(game.snapshot.secondaryAbilityAvailable, true)
+    assert.equal(game.useSecondaryAbility(), true)
+    assert.equal(game.useSecondaryAbility(), false)
+    assert.equal(game.snapshot.secondaryAbilityCooldownRemaining, stats.secondaryAbilityCooldownSeconds)
+    assert.equal(game.snapshot.abilityCooldownRemaining, 0)
+    const event = game.drainEvents().find(event => event.type === 'hit')
+    assert.equal(event?.data?.input, 'secondary')
+    assert.equal(event?.data?.ability, stats.secondaryAbility)
+    assert.deepEqual(event?.data?.position, { x: 16, y: 4.3, z: 16 })
+    game.update(7.25, close)
+    assert.equal(game.snapshot.knotOpen, true)
+    assert.equal(game.useSecondaryAbility(), false)
+    assert.equal(game.useClassAbility(), true)
+    assert.ok(game.snapshot.secondaryAbilityCooldownRemaining > 0)
+    assert.ok(game.snapshot.abilityCooldownRemaining > 0)
+  }
+})
+
+test('automatic input cannot cut the rescue knot, but the intentional E power can', () => {
+  const game = new Encounter({ ...LIVE_ENCOUNTER_CONFIG, climaxAt: 1, failsafeAt: 2 })
+  game.start()
+  assert.ok(game.chooseClass('melee'))
+  game.update(0.05, { ...close, z: 14 })
+  assert.ok(game.cutKnot())
+  game.toggleAutoAttack()
+  game.update(2, { ...close, z: 14 })
+  assert.equal(game.snapshot.failsafe, true)
+  for (let i = 0; i < 30; i++) {
+    game.update(0.05, { ...close, z: 14 })
+    assert.equal(game.resolveAutoAttack(), false)
+  }
+  assert.equal(game.snapshot.successfulCuts, 1)
+  assert.equal(game.useSecondaryAbility(), true)
+  assert.equal(game.snapshot.formHealth, 95)
+  assert.equal(game.snapshot.outcome, null)
+})

@@ -1,0 +1,13 @@
+Master of Puppets — third-party notices
+
+Editable UI interaction and platform helpers:
+Source: https://github.com/decentraland/sdk-skills
+Original contributors: Decentraland SDK Skills contributors
+License: Apache License, Version 2.0
+Affected source: src/ui/interaction.tsx and src/ui/platform.tsx
+Local changes: this attribution header; helper behavior is retained.
+License copy: sdk-skills-APACHE-2.0.txt
+
+Decentraland SDK7 and React ECS dependencies are distributed under their own
+package licenses, retained in the corresponding npm packages. No third-party
+music, artwork or character models are included in the original theatre assets.

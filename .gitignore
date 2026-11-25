@@ -1,0 +1,43 @@
+# Dependencies and generated SDK output
+node_modules/
+bin/
+main.crdt
+dist/
+coverage/
+.cache/
+supabase/.temp/
+supabase/functions/boss-rank/ranking.js
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+npm-debug.log*
+
+# Machine/editor state and local MCP credentials
+.editor/
+.mcp.json
+.cursor/
+.agents/
+.claude/
+.codex/
+.gemini/
+.vscode/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*private-key*
+*mnemonic*
+
+# Blender backups and local capture output
+*.blend1
+*.blend2
+art/captures/
+art/renders/tmp/
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.log

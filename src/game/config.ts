@@ -1,0 +1,55 @@
+import type { EncounterConfig } from './types'
+import { THEATRE_CENTER } from './theatre-layout.mjs'
+
+export const DEFAULT_CONFIG: EncounterConfig = {
+  classSelectionEnabled: false,
+  practiceOnClassSelect: false,
+  combatSummonsEnabled: false,
+  combatSummonHealth: 2,
+  useClassDamage: false,
+  floorY: THEATRE_CENTER.y,
+  center: { ...THEATRE_CENTER },
+  spawn: { x: 16, y: 3.1, z: 2.8 },
+  failsafePosition: { x: 16, y: 3.1, z: 13.5 },
+  maxHealth: 5,
+  respawnSeconds: 2,
+  defeatLimit: 3,
+  respawnProtectionSeconds: 1,
+  damageCooldownSeconds: 1,
+  onboardingSeconds: 15,
+  firstOpeningSeconds: 6,
+  healthPerPhase: [3, 3, 3, 1],
+  windows: [3, 3, 3, 6],
+  minimumWarningSeconds: 1,
+  retryFactor: 0.6,
+  climaxAt: 230,
+  failsafeAt: 265,
+  timeoutAt: 280,
+  finishAt: 295,
+  endingSeconds: 15,
+  assistAfter: [2, 4],
+  minionSpeed: 3.5,
+  markerRadius: 0.9,
+  arrivalWindowSeconds: 6,
+  assistedArrivalWindowSeconds: 8,
+  knotReach: 4,
+  restKnotHeight: 3.45,
+  wrapRadius: 5,
+  wrapInnerRadius: 1.25,
+  wrapTurns: 1,
+  assistedWrapTurns: 0.5,
+  tetherPull: 2.6,
+  maxTetherLength: 24,
+  cycleSeconds: 13
+}
+
+export const LIVE_ENCOUNTER_CONFIG = {
+  classSelectionEnabled: true,
+  practiceOnClassSelect: true,
+  combatSummonsEnabled: true,
+  combatSummonHealth: 40,
+  useClassDamage: true,
+  firstOpeningSeconds: 18,
+  onboardingSeconds: 30,
+  healthPerPhase: [100, 110, 120, 130]
+} as const satisfies Partial<EncounterConfig>

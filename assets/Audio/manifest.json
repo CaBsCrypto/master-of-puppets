@@ -1,0 +1,146 @@
+[
+  {
+    "name": "wood-hit",
+    "file": "assets/Audio/wood-hit.wav",
+    "seconds": 0.25,
+    "bytes": 11068,
+    "original": true,
+    "mp3": "assets/Audio/wood-hit.mp3",
+    "mp3_bytes": 2760
+  },
+  {
+    "name": "telegraph",
+    "file": "assets/Audio/telegraph.wav",
+    "seconds": 0.85,
+    "bytes": 37528,
+    "original": true,
+    "mp3": "assets/Audio/telegraph.mp3",
+    "mp3_bytes": 7567
+  },
+  {
+    "name": "knot-open",
+    "file": "assets/Audio/knot-open.wav",
+    "seconds": 1.0,
+    "bytes": 44144,
+    "original": true,
+    "mp3": "assets/Audio/knot-open.mp3",
+    "mp3_bytes": 8821
+  },
+  {
+    "name": "knot-cut",
+    "file": "assets/Audio/knot-cut.wav",
+    "seconds": 0.7,
+    "bytes": 30912,
+    "original": true,
+    "mp3": "assets/Audio/knot-cut.mp3",
+    "mp3_bytes": 6313
+  },
+  {
+    "name": "damage",
+    "file": "assets/Audio/damage.wav",
+    "seconds": 0.35,
+    "bytes": 15478,
+    "original": true,
+    "mp3": "assets/Audio/damage.mp3",
+    "mp3_bytes": 3596
+  },
+  {
+    "name": "fall",
+    "file": "assets/Audio/fall.wav",
+    "seconds": 1.05,
+    "bytes": 46348,
+    "original": true,
+    "mp3": "assets/Audio/fall.mp3",
+    "mp3_bytes": 9239
+  },
+  {
+    "name": "strings-break",
+    "file": "assets/Audio/strings-break.wav",
+    "seconds": 0.9,
+    "bytes": 39734,
+    "original": true,
+    "mp3": "assets/Audio/strings-break.mp3",
+    "mp3_bytes": 7985
+  },
+  {
+    "name": "three-knocks",
+    "file": "assets/Audio/three-knocks.wav",
+    "seconds": 1.5,
+    "bytes": 66194,
+    "original": true,
+    "mp3": "assets/Audio/three-knocks.mp3",
+    "mp3_bytes": 12791
+  },
+  {
+    "name": "curtain",
+    "file": "assets/Audio/curtain.wav",
+    "seconds": 1.25,
+    "bytes": 55168,
+    "original": true,
+    "mp3": "assets/Audio/curtain.mp3",
+    "mp3_bytes": 10701
+  },
+  {
+    "name": "applause",
+    "file": "assets/Audio/applause.wav",
+    "seconds": 2.3,
+    "bytes": 101472,
+    "original": true,
+    "mp3": "assets/Audio/applause.mp3",
+    "mp3_bytes": 19270
+  },
+  {
+    "name": "musicbox-loop",
+    "file": "assets/Audio/musicbox-loop.wav",
+    "seconds": 8.0,
+    "bytes": 352844,
+    "original": true,
+    "mp3": "assets/Audio/musicbox-loop.mp3",
+    "mp3_bytes": 64827
+  },
+  {
+    "name": "finale",
+    "file": "assets/Audio/finale.wav",
+    "seconds": 3.0,
+    "bytes": 132344,
+    "original": true,
+    "mp3": "assets/Audio/finale.mp3",
+    "mp3_bytes": 24703
+  },
+  {
+    "name": "plot-drums",
+    "file": "assets/Audio/plot-drums.wav",
+    "seconds": 8.0,
+    "bytes": 352844,
+    "original": true,
+    "mp3": "assets/Audio/plot-drums.mp3",
+    "mp3_bytes": 64827
+  },
+  {
+    "name": "company-strings",
+    "file": "assets/Audio/company-strings.wav",
+    "seconds": 8.0,
+    "bytes": 352844,
+    "original": true,
+    "mp3": "assets/Audio/company-strings.mp3",
+    "mp3_bytes": 64827
+  },
+  {
+    "name": "archer-draw",
+    "file": "assets/Audio/archer-draw.wav",
+    "seconds": 0.48,
+    "bytes": 21212,
+    "original": true,
+    "mp3": "assets/Audio/archer-draw.mp3",
+    "mp3_bytes": 4641
+  },
+  {
+    "name": "controller-fall",
+    "file": "assets/Audio/controller-fall.wav",
+    "seconds": 0.68,
+    "bytes": 30032,
+    "original": true,
+    "mp3": "assets/Audio/controller-fall.mp3",
+    "mp3_bytes": 6313
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "name": "master-of-puppets-dcl",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Master of Puppets — a five minute final boss encounter for Game Over 2026 in Decentraland",
+  "license": "MIT",
+  "scripts": {
+    "start": "node tools/sdk.mjs start",
+    "start:web": "node tools/sdk.mjs start --web",
+    "build": "node tools/sdk.mjs build --production",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/game/*.test.ts"
+  },
+  "devDependencies": {
+    "@dcl/crypto": "3.9.0",
+    "@dcl/sdk": "7.33.0",
+    "@dcl/js-runtime": "7.33.0",
+    "@types/node": "^24.0.0",
+    "esbuild": "0.18.20",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3"
+  },
+  "engines": {
+    "node": ">=24 <27",
+    "npm": ">=11"
+  }
+}

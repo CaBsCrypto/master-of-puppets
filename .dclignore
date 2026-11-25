@@ -1,0 +1,28 @@
+# Keep runtime exports; omit editable sources and local tooling.
+node_modules/**
+.cache/**
+src/**
+tests/**
+tools/**
+server/**
+supabase/**
+docs/**
+art/**
+README.md
+CREDITS.md
+LICENSE
+package.json
+package-lock.json
+tsconfig.json
+*.tsbuildinfo
+**/*.blend
+**/*.blend1
+**/*.blend2
+**/*.py
+**/*.md
+**/*.log
+**/*.tmp
+assets/Audio/*.wav
+# Editor and agent files, never part of the deployed scene
+cursor.config
+cursorignore

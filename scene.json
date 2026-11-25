@@ -1,0 +1,61 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "Master of Puppets",
+    "description": "Cut the crimson knot. Break the strings. End the show. A final boss encounter by CaBs for Game Over 2026.",
+    "navmapThumbnail": "assets/Images/cover.jpg"
+  },
+  "main": "bin/index.js",
+  "contact": {
+    "name": "CaBs"
+  },
+  "tags": [
+    "game",
+    "boss-fight",
+    "DCLGameOver2026"
+  ],
+  "scene": {
+    "base": "0,0",
+    "parcels": [
+      "0,0",
+      "1,0",
+      "0,1",
+      "1,1"
+    ]
+  },
+  "spawnPoints": [
+    {
+      "name": "StageEntrance",
+      "default": true,
+      "position": {
+        "x": 16,
+        "y": 3.1,
+        "z": 2.8
+      },
+      "cameraTarget": {
+        "x": 16,
+        "y": 4.2,
+        "z": 16
+      }
+    }
+  ],
+  "worldConfiguration": {
+    "name": "brownsstudio.dcl.eth"
+  },
+  "requiredPermissions": [
+    "ALLOW_TO_MOVE_PLAYER_INSIDE_SCENE",
+    "ALLOW_TO_TRIGGER_AVATAR_EMOTE"
+  ],
+  "featureToggles": {
+    "voiceChat": "disabled",
+    "nearbyVoiceChat": "disabled",
+    "portableExperiences": "disabled"
+  },
+  "skyboxConfig": {},
+  "landscapeTerrain": false,
+  "source": {
+    "origin": "SDK",
+    "projectId": "7b02bb93-8b36-4e35-b722-313ee281332c"
+  }
+}
